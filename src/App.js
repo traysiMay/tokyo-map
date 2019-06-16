@@ -1,7 +1,8 @@
-import React from "react";
-import { Map } from "./components/Map";
+import React from "react"
+import { Map } from "./components/Map"
+import { Theater } from "./components/Theater"
 function App() {
-  return <Map />;
+  return <Theater />
 }
 
-export default App;
+export default App
