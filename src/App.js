@@ -1,8 +1,12 @@
 import React from "react"
-import { Map } from "./components/Map"
-import { Theater } from "./components/Theater"
-function App() {
-  return <Theater />
-}
+import { Router } from "./Router"
+import { MapProvider } from "./Context"
 
+function App() {
+  return (
+    <MapProvider>
+      <Router />
+    </MapProvider>
+  )
+}
 export default App

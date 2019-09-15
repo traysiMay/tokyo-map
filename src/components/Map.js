@@ -1,14 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useContext, useEffect } from "react";
 import { makeMap, transformFromLL, threeDModel } from "./MapFunctions";
-
+import coords from "./result.json";
+import { MapContext } from "../Context";
 export const Map = () => {
+  const { dispatch } = useContext(MapContext);
   useEffect(() => {
     // Load the mapbox map
     const map = makeMap();
 
-    const transform = transformFromLL(139.768, 35.669);
-    const transform2 = transformFromLL(139.769, 35.669);
-    const threeJSModel = threeDModel(transform, "model1");
+    // const transform = transformFromLL(139.7800295, 35.6476516);
+    // const transform2 = transformFromLL(139.7810295, 35.6476516);
+    // const threeJSModel = threeDModel(transform, "model1");
     // const threeJSModel2 = threeDModel(transform2, "model2");
 
     // const models = [];
@@ -44,6 +46,31 @@ export const Map = () => {
         }
       }
 
+      let fts = [];
+      let lonlat = [];
+      const places = Object.keys(coords);
+      places.forEach(place => {
+        coords[place].forEach(o => {
+          const { file, extension, lon, lat } = o;
+          const obj = {
+            type: "Feature",
+            properties: {
+              place,
+              file,
+              extension
+            },
+            geometry: {
+              type: "Point",
+              coordinates: [lon, lat]
+            }
+          };
+          fts.push(obj);
+          lonlat.push([lon, lat]);
+        });
+      });
+
+      console.log(fts);
+
       map.addImage("gradient", { width: width, height: width, data: data });
       map.addLayer({
         id: "points",
@@ -52,32 +79,57 @@ export const Map = () => {
           type: "geojson",
           data: {
             type: "FeatureCollection",
-            features: [
-              {
-                type: "Feature",
-                geometry: {
-                  type: "Point",
-                  coordinates: [139.768, 35.669]
-                }
-              }
-            ]
+            features: fts
+            // features: [
+            //   {
+            //     type: "Feature",
+            //     properties: {
+            //       place: "kyoto-botanical",
+            //       file: "kyoto-botanical-god_tree1-2000",
+            //       extension: "mp4"
+            //     },
+            //     geometry: {
+            //       type: "Point",
+            //       coordinates: [139.7800295, 35.6476516]
+            //     }
+            //   },
+            //   {
+            //     type: "Feature",
+            //     properties: {
+            //       place: "kyoto-tenryu_ramen",
+            //       file: "kyoto-tenryu_ramen",
+            //       extension: "jpg"
+            //     },
+            //     geometry: {
+            //       type: "Point",
+            //       coordinates: [139.7820295, 35.6476516],
+            //       name: "meepo"
+            //     }
+            //   }
+            // ]
           }
         },
         layout: {
           "icon-image": "gradient"
         }
       });
-
-      map.addLayer(threeJSModel);
-      //map.addLayer(threeJSModel2);
-      //models.forEach(m => map.addLayer(m));
+      // lonlat.forEach((ll, i) => {
+      //   console.log(ll);
+      //   const transform = transformFromLL(parseFloat(ll[0]), parseFloat(ll[1]));
+      //   const threeJSModel = threeDModel(transform, "model" + i);
+      //   map.addLayer(threeJSModel);
+      // });
     });
 
     map.on("click", "points", function(e) {
       map.flyTo({ center: e.coordinates, zoom: 25 });
-      threeJSModel.sphere.material.color.setHex(0xffffff);
-      console.log(threeJSModel.sphere.position);
-      document.getElementById("map").style.display = "none";
+      console.log(e.features[0].properties.place);
+      // threeJSModel.sphere.material.color.setHex(0xffffff);
+      // console.log(threeJSModel.sphere.position);
+      const { place, file, extension } = e.features[0].properties;
+      console.log(place);
+      dispatch({ type: "theater", place, file, extension });
+      // document.getElementById("map").style.display = "none";
     });
 
     return () => map.remove();
@@ -92,9 +144,7 @@ export const Map = () => {
             console.log("hello?");
             document.getElementById("map").style.display = "block";
           }}
-        >
-          SEXY MEEPO
-        </div>
+        ></div>
         <div id="map" />
       </div>
     </div>
